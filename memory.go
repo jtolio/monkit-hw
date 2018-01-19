@@ -14,6 +14,13 @@ func Memory() monkit.StatSource {
 			return
 		}
 		monkit.StatSourceFromStruct(&mem).Stats(cb)
+		var swap gosigar.Swap
+		err = swap.Get()
+		if err != nil {
+			logger.Debuge(err)
+			return
+		}
+		monkit.Prefix("swap.", monkit.StatSourceFromStruct(&swap)).Stats(cb)
 	})
 }
 

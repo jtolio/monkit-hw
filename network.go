@@ -55,7 +55,7 @@ func Conns() monkit.StatSource {
 	})
 }
 
-func Traffic() monkit.StatSource {
+func NetStats() monkit.StatSource {
 	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
 		interfaces, err := ioutil.ReadDir("/sys/class/net")
 		if err != nil {
@@ -71,10 +71,10 @@ func Traffic() monkit.StatSource {
 
 func Network() monkit.StatSource {
 	conns := monkit.Prefix("conns.", Conns())
-	traffic := monkit.Prefix("traffic.", Traffic())
+	stats := monkit.Prefix("stats.", NetStats())
 	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
 		conns.Stats(cb)
-		traffic.Stats(cb)
+		stats.Stats(cb)
 	})
 }
 
