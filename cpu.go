@@ -6,15 +6,16 @@ import (
 )
 
 func CPU() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
-		var cpu gosigar.Cpu
-		err := cpu.Get()
-		if err != nil {
-			logger.Debuge(err)
-			return
-		}
-		monkit.StatSourceFromStruct(&cpu).Stats(cb)
-	})
+	return IncludeDerivative(
+		monkit.StatSourceFunc(func(cb func(name string, val float64)) {
+			var cpu gosigar.Cpu
+			err := cpu.Get()
+			if err != nil {
+				logger.Debuge(err)
+				return
+			}
+			monkit.StatSourceFromStruct(&cpu).Stats(cb)
+		}))
 }
 
 func init() {

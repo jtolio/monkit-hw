@@ -56,17 +56,18 @@ func Conns() monkit.StatSource {
 }
 
 func NetStats() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
-		interfaces, err := ioutil.ReadDir("/sys/class/net")
-		if err != nil {
-			logger.Debuge(err)
-			return
-		}
-		for _, iface := range interfaces {
-			statsdir := filepath.Join("/sys/class/net", iface.Name(), "statistics")
-			monkit.Prefix(iface.Name()+".", statSourceFromDir(statsdir)).Stats(cb)
-		}
-	})
+	return IncludeDerivative(
+		monkit.StatSourceFunc(func(cb func(name string, val float64)) {
+			interfaces, err := ioutil.ReadDir("/sys/class/net")
+			if err != nil {
+				logger.Debuge(err)
+				return
+			}
+			for _, iface := range interfaces {
+				statsdir := filepath.Join("/sys/class/net", iface.Name(), "statistics")
+				monkit.Prefix(iface.Name()+".", statSourceFromDir(statsdir)).Stats(cb)
+			}
+		}))
 }
 
 func Network() monkit.StatSource {
