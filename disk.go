@@ -1,10 +1,12 @@
+// +build !darwin darwin,cgo
+
 package hw
 
 import (
 	"strings"
 
 	gosigar "github.com/cloudfoundry/gosigar"
-	"gopkg.in/spacemonkeygo/monkit.v2"
+	monkit "gopkg.in/spacemonkeygo/monkit.v2"
 )
 
 func Disk() monkit.StatSource {
