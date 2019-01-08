@@ -1,4 +1,4 @@
-// +build !freebsd !darwin darwin,cgo
+// +build linux windows darwin,cgo
 
 package hw
 
