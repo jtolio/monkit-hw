@@ -4,11 +4,11 @@ package hw
 
 import (
 	gosigar "github.com/cloudfoundry/gosigar"
-	monkit "gopkg.in/spacemonkeygo/monkit.v2"
+	monkit "github.com/spacemonkeygo/monkit/v3"
 )
 
 func Load() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
+	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
 		var load gosigar.LoadAverage
 		err := load.Get()
 		if err != nil {

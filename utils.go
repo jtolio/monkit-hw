@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"gopkg.in/spacemonkeygo/monkit.v2"
+	"github.com/spacemonkeygo/monkit/v3"
 )
 
 func statSourceFromDir(dir string) monkit.StatSource {
 	return monkit.StatSourceFunc(
-		func(cb func(name string, val float64)) {
+		func(cb func(series monkit.Series, val float64)) {
 			entries, err := ioutil.ReadDir(dir)
 			if err != nil {
 				logger.Debuge(err)
@@ -28,7 +28,7 @@ func statSourceFromDir(dir string) monkit.StatSource {
 					logger.Debuge(err)
 					continue
 				}
-				cb(entry.Name(), val)
+				cb(monkit.NewSeries("hardware", entry.Name()), val)
 			}
 		})
 }

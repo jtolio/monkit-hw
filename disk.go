@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	gosigar "github.com/cloudfoundry/gosigar"
-	monkit "gopkg.in/spacemonkeygo/monkit.v2"
+	monkit "github.com/spacemonkeygo/monkit/v3"
 )
 
 func Disk() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
+	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
 		var fslist gosigar.FileSystemList
 		err := fslist.Get()
 		if err != nil {
@@ -27,7 +27,11 @@ func Disk() monkit.StatSource {
 				logger.Debuge(err)
 				continue
 			}
-			monkit.Prefix(fs.DevName+".", monkit.StatSourceFromStruct(&fsu)).Stats(cb)
+			monkit.StatSourceFromStruct(&fsu).Stats(func(series monkit.Series, val float64) {
+				series.Measurement = "hardware"
+				series.Tags = series.Tags.Set("kind", "fs.DevName")
+				cb(series, val)
+			})
 		}
 	})
 }

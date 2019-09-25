@@ -6,7 +6,7 @@ import (
 	"flag"
 	"os"
 
-	"gopkg.in/spacemonkeygo/monkit.v2"
+	"github.com/spacemonkeygo/monkit/v3"
 )
 
 var (
@@ -15,8 +15,8 @@ var (
 )
 
 func OOM() monkit.StatSource {
-	kills := monkit.Prefix("kills.", monkit.StatSourceFunc(
-		func(cb func(name string, val float64)) {
+	kills := monkit.StatSourceFunc(
+		func(cb func(series monkit.Series, val float64)) {
 			fh, err := os.Open(*oomLog)
 			if err != nil {
 				logger.Debuge(err)
@@ -36,11 +36,13 @@ func OOM() monkit.StatSource {
 				return
 			}
 
-			cb("total", float64(count))
-		}))
+			series := monkit.NewSeries("hardware", "total")
+			series.Tags = series.Tags.Set("kind", "kills")
+			cb(series, float64(count))
+		})
 
-	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
-		kills.Stats(cb)
+	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
+		kills(cb)
 		// TODO: add oom scores
 	})
 }

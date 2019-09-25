@@ -4,7 +4,7 @@ package hw
 
 import (
 	gosigar "github.com/cloudfoundry/gosigar"
-	monkit "gopkg.in/spacemonkeygo/monkit.v2"
+	monkit "github.com/spacemonkeygo/monkit/v3"
 )
 
 func CPU() monkit.StatSource {

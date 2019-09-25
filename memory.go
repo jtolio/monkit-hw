@@ -4,11 +4,11 @@ package hw
 
 import (
 	gosigar "github.com/cloudfoundry/gosigar"
-	monkit "gopkg.in/spacemonkeygo/monkit.v2"
+	monkit "github.com/spacemonkeygo/monkit/v3"
 )
 
 func Memory() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
+	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
 		var mem gosigar.Mem
 		err := mem.Get()
 		if err != nil {
@@ -22,7 +22,11 @@ func Memory() monkit.StatSource {
 			logger.Debuge(err)
 			return
 		}
-		monkit.Prefix("swap.", monkit.StatSourceFromStruct(&swap)).Stats(cb)
+		monkit.StatSourceFromStruct(&swap).Stats(func(series monkit.Series, val float64) {
+			series.Measurement = "hardware"
+			series.Tags = series.Tags.Set("kind", "swap")
+			cb(series, val)
+		})
 	})
 }
 

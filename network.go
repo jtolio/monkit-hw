@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gopkg.in/spacemonkeygo/monkit.v2"
+	"github.com/spacemonkeygo/monkit/v3"
 )
 
 func countConns(path string) (amount int, err error) {
@@ -39,27 +39,27 @@ func countConns(path string) (amount int, err error) {
 }
 
 func Conns() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
+	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
 		v4conns, err := countConns("/proc/net/tcp")
 		if err != nil {
 			logger.Debuge(err)
 			return
 		}
-		cb("v4", float64(v4conns))
+		cb(monkit.NewSeries("hardware", "v4"), float64(v4conns))
 
 		v6conns, err := countConns("/proc/net/tcp6")
 		if err != nil {
 			logger.Debuge(err)
 			return
 		}
-		cb("v6", float64(v6conns))
-		cb("total", float64(v4conns+v6conns))
+		cb(monkit.NewSeries("hardware", "v6"), float64(v6conns))
+		cb(monkit.NewSeries("hardware", "total"), float64(v4conns+v6conns))
 	})
 }
 
 func NetStats() monkit.StatSource {
 	return IncludeDerivative(
-		monkit.StatSourceFunc(func(cb func(name string, val float64)) {
+		monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
 			interfaces, err := ioutil.ReadDir("/sys/class/net")
 			if err != nil {
 				logger.Debuge(err)
@@ -67,17 +67,27 @@ func NetStats() monkit.StatSource {
 			}
 			for _, iface := range interfaces {
 				statsdir := filepath.Join("/sys/class/net", iface.Name(), "statistics")
-				monkit.Prefix(iface.Name()+".", statSourceFromDir(statsdir)).Stats(cb)
+				statSourceFromDir(statsdir).Stats(func(series monkit.Series, val float64) {
+					series.Measurement = "hardware"
+					series.Tags = series.Tags.Set("kind", iface.Name())
+					cb(series, val)
+				})
 			}
 		}))
 }
 
 func Network() monkit.StatSource {
-	conns := monkit.Prefix("conns.", Conns())
-	stats := monkit.Prefix("stats.", NetStats())
-	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
-		conns.Stats(cb)
-		stats.Stats(cb)
+	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
+		Conns().Stats(func(series monkit.Series, val float64) {
+			series.Measurement = "hardware"
+			series.Tags = series.Tags.Set("kind", "conns")
+			cb(series, val)
+		})
+		NetStats().Stats(func(series monkit.Series, val float64) {
+			series.Measurement = "hardware"
+			series.Tags = series.Tags.Set("kind", "stats")
+			cb(series, val)
+		})
 	})
 }
 

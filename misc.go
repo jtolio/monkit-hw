@@ -4,20 +4,20 @@ package hw
 
 import (
 	gosigar "github.com/cloudfoundry/gosigar"
-	monkit "gopkg.in/spacemonkeygo/monkit.v2"
+	"github.com/spacemonkeygo/monkit/v3"
 )
 
 // uptime, control
 func Misc() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(name string, val float64)) {
-		cb("control", 1)
+	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
+		cb(monkit.NewSeries("hardware", "control"), 1)
 		var u gosigar.Uptime
 		err := u.Get()
 		if err != nil {
 			logger.Debuge(err)
 			return
 		}
-		cb("uptime", u.Length)
+		cb(monkit.NewSeries("hardware", "uptime"), u.Length)
 	})
 }
 
