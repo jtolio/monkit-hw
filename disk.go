@@ -28,7 +28,7 @@ func Disk() monkit.StatSource {
 				continue
 			}
 			monkit.StatSourceFromStruct(&fsu).Stats(func(series monkit.Series, val float64) {
-				series.Measurement = "hardware"
+				series.Measurement = "disk"
 				series.Tags = series.Tags.Set("device", fs.DevName)
 				cb(series, val)
 			})

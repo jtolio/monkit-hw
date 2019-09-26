@@ -16,7 +16,7 @@ func Memory() monkit.StatSource {
 			return
 		}
 		monkit.StatSourceFromStruct(&mem).Stats(func(series monkit.Series, val float64) {
-			series.Measurement = "hardware"
+			series.Measurement = "memory"
 			cb(series, val)
 		})
 		var swap gosigar.Swap
@@ -26,8 +26,7 @@ func Memory() monkit.StatSource {
 			return
 		}
 		monkit.StatSourceFromStruct(&swap).Stats(func(series monkit.Series, val float64) {
-			series.Measurement = "hardware"
-			series.Tags = series.Tags.Set("kind", "swap")
+			series.Measurement = "swap"
 			cb(series, val)
 		})
 	})

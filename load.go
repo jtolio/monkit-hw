@@ -16,7 +16,7 @@ func Load() monkit.StatSource {
 			return
 		}
 		monkit.StatSourceFromStruct(&load).Stats(func(series monkit.Series, val float64) {
-			series.Measurement = "hardware"
+			series.Measurement = "load"
 			cb(series, val)
 		})
 	})

@@ -10,14 +10,14 @@ import (
 // uptime, control
 func Misc() monkit.StatSource {
 	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
-		cb(monkit.NewSeries("hardware", "control"), 1)
+		cb(monkit.NewSeries("control", "value"), 1)
 		var u gosigar.Uptime
 		err := u.Get()
 		if err != nil {
 			logger.Debuge(err)
 			return
 		}
-		cb(monkit.NewSeries("hardware", "uptime"), u.Length)
+		cb(monkit.NewSeries("uptime", "value"), u.Length)
 	})
 }
 

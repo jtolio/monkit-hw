@@ -28,7 +28,7 @@ func statSourceFromDir(dir string) monkit.StatSource {
 					logger.Debuge(err)
 					continue
 				}
-				cb(monkit.NewSeries("hardware", entry.Name()), val)
+				cb(monkit.NewSeries("directory", entry.Name()), val)
 			}
 		})
 }

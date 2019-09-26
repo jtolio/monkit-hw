@@ -40,7 +40,7 @@ func countConns(path string) (amount int, err error) {
 
 func Conns() monkit.StatSource {
 	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
-		series := monkit.NewSeries("hardware", "connections")
+		series := monkit.NewSeries("conns", "connections")
 
 		v4conns, err := countConns("/proc/net/tcp")
 		if err != nil {
@@ -57,10 +57,10 @@ func Conns() monkit.StatSource {
 		}
 
 		series.Tags = series.Tags.Set("protocol", "ipv6")
-		cb(monkit.NewSeries("hardware", "v6"), float64(v6conns))
+		cb(series, float64(v6conns))
 
 		series.Tags = series.Tags.Set("protocol", "all")
-		cb(monkit.NewSeries("hardware", "total"), float64(v4conns+v6conns))
+		cb(series, float64(v4conns+v6conns))
 	})
 }
 
@@ -75,7 +75,7 @@ func NetStats() monkit.StatSource {
 			for _, iface := range interfaces {
 				statsdir := filepath.Join("/sys/class/net", iface.Name(), "statistics")
 				statSourceFromDir(statsdir).Stats(func(series monkit.Series, val float64) {
-					series.Measurement = "hardware"
+					series.Measurement = "netstats"
 					series.Tags = series.Tags.Set("interface", iface.Name())
 					cb(series, val)
 				})

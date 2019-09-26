@@ -36,7 +36,7 @@ func OOM() monkit.StatSource {
 				return
 			}
 
-			cb(monkit.NewSeries("hardware", "total"), float64(count))
+			cb(monkit.NewSeries("oom", "total"), float64(count))
 		})
 
 	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {

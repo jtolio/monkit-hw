@@ -17,7 +17,7 @@ func CPU() monkit.StatSource {
 				return
 			}
 			monkit.StatSourceFromStruct(&cpu).Stats(func(series monkit.Series, val float64) {
-				series.Measurement = "hardware"
+				series.Measurement = "cpu"
 				cb(series, val)
 			})
 		}))
