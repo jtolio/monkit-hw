@@ -40,10 +40,11 @@ func IncludeDerivative(src monkit.StatSource) monkit.StatSource {
 		timeDiff := current.ts.Sub(history[0].ts).Seconds()
 		if timeDiff > 0 {
 			for key, sVal := range current.seriesVals {
-				derivVal := (sVal.val-history[0].seriesVals[key].val)/timeDiff
-				sVal.series.Tags = sVal.series.Tags.Set("deriv_kind", "value")
-				sVal.series.Tags = sVal.series.Tags.Set("deriv_kind", "deriv")
+				derivVal := (sVal.val - history[0].seriesVals[key].val) / timeDiff
+				tags := sVal.series.Tags
+				sVal.series.Tags = tags.Set("deriv_kind", "deriv")
 				cb(sVal.series, derivVal)
+				sVal.series.Tags = tags.Set("deriv_kind", "value")
 				cb(sVal.series, sVal.val)
 			}
 		} else {

@@ -36,9 +36,7 @@ func OOM() monkit.StatSource {
 				return
 			}
 
-			series := monkit.NewSeries("hardware", "total")
-			series.Tags = series.Tags.Set("kind", "kills")
-			cb(series, float64(count))
+			cb(monkit.NewSeries("hardware", "total"), float64(count))
 		})
 
 	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {

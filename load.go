@@ -4,7 +4,7 @@ package hw
 
 import (
 	gosigar "github.com/cloudfoundry/gosigar"
-	monkit "github.com/spacemonkeygo/monkit/v3"
+	"github.com/spacemonkeygo/monkit/v3"
 )
 
 func Load() monkit.StatSource {
@@ -17,7 +17,6 @@ func Load() monkit.StatSource {
 		}
 		monkit.StatSourceFromStruct(&load).Stats(func(series monkit.Series, val float64) {
 			series.Measurement = "hardware"
-			series.Tags = series.Tags.Set("kind", "load")
 			cb(series, val)
 		})
 	})

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	gosigar "github.com/cloudfoundry/gosigar"
-	monkit "github.com/spacemonkeygo/monkit/v3"
+	"github.com/spacemonkeygo/monkit/v3"
 )
 
 func Disk() monkit.StatSource {
@@ -29,7 +29,7 @@ func Disk() monkit.StatSource {
 			}
 			monkit.StatSourceFromStruct(&fsu).Stats(func(series monkit.Series, val float64) {
 				series.Measurement = "hardware"
-				series.Tags = series.Tags.Set("kind", fs.DevName)
+				series.Tags = series.Tags.Set("device", fs.DevName)
 				cb(series, val)
 			})
 		}
