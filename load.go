@@ -15,7 +15,11 @@ func Load() monkit.StatSource {
 			logger.Debuge(err)
 			return
 		}
-		monkit.StatSourceFromStruct(&load).Stats(cb)
+		monkit.StatSourceFromStruct(&load).Stats(func(series monkit.Series, val float64) {
+			series.Measurement = "hardware"
+			series.Tags = series.Tags.Set("kind", "load")
+			cb(series, val)
+		})
 	})
 }
 

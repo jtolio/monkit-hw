@@ -27,6 +27,7 @@ func IncludeDerivative(src monkit.StatSource) monkit.StatSource {
 	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
 		current := captured{seriesVals: map[string]seriesVal{}, ts: time.Now()}
 		src.Stats(func(series monkit.Series, val float64) {
+			series.Measurement = "hardware"
 			current.seriesVals[series.String()] = seriesVal{series, val}
 		})
 		mtx.Lock()
@@ -40,12 +41,15 @@ func IncludeDerivative(src monkit.StatSource) monkit.StatSource {
 		if timeDiff > 0 {
 			for key, sVal := range current.seriesVals {
 				derivVal := (sVal.val-history[0].seriesVals[key].val)/timeDiff
-				cb(monkit.NewSeries("hardware", key+".deriv"), derivVal)
-				cb(monkit.NewSeries("hardware", key+".val"), sVal.val)
+				sVal.series.Tags = sVal.series.Tags.Set("deriv_kind", "value")
+				sVal.series.Tags = sVal.series.Tags.Set("deriv_kind", "deriv")
+				cb(sVal.series, derivVal)
+				cb(sVal.series, sVal.val)
 			}
 		} else {
-			for key, sVal := range current.seriesVals {
-				cb(monkit.NewSeries("hardware", key+".seriesVal"), sVal.val)
+			for _, sVal := range current.seriesVals {
+				sVal.series.Tags = sVal.series.Tags.Set("deriv_kind", "value")
+				cb(sVal.series, sVal.val)
 			}
 		}
 	})

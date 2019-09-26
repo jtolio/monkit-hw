@@ -15,7 +15,11 @@ func Memory() monkit.StatSource {
 			logger.Debuge(err)
 			return
 		}
-		monkit.StatSourceFromStruct(&mem).Stats(cb)
+		monkit.StatSourceFromStruct(&mem).Stats(func(series monkit.Series, val float64) {
+			series.Measurement = "hardware"
+			series.Tags = series.Tags.Set("kind", "memory")
+			cb(series, val)
+		})
 		var swap gosigar.Swap
 		err = swap.Get()
 		if err != nil {
