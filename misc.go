@@ -9,18 +9,16 @@ import (
 
 // uptime, control
 func Misc() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
-		cb(monkit.NewSeries("control", "value"), 1)
+	return monkit.StatSourceFunc(func(cb func(key monkit.SeriesKey, field string, val float64)) {
+		cb(monkit.NewSeriesKey("misc"), "control", 1)
 		var u gosigar.Uptime
 		err := u.Get()
 		if err != nil {
 			logger.Debuge(err)
 			return
 		}
-		cb(monkit.NewSeries("uptime", "value"), u.Length)
+		cb(monkit.NewSeriesKey("misc"), "uptime", u.Length)
 	})
 }
 
-func init() {
-	registrations["misc"] = Misc()
-}
+func init() { registrations = append(registrations, Misc()) }

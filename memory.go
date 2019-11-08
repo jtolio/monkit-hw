@@ -8,30 +8,23 @@ import (
 )
 
 func Memory() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
+	return monkit.StatSourceFunc(func(cb func(key monkit.SeriesKey, field string, val float64)) {
 		var mem gosigar.Mem
 		err := mem.Get()
 		if err != nil {
 			logger.Debuge(err)
 			return
 		}
-		monkit.StatSourceFromStruct(&mem).Stats(func(series monkit.Series, val float64) {
-			series.Measurement = "memory"
-			cb(series, val)
-		})
+		monkit.StatSourceFromStruct(monkit.NewSeriesKey("memory"), &mem).Stats(cb)
+
 		var swap gosigar.Swap
 		err = swap.Get()
 		if err != nil {
 			logger.Debuge(err)
 			return
 		}
-		monkit.StatSourceFromStruct(&swap).Stats(func(series monkit.Series, val float64) {
-			series.Measurement = "swap"
-			cb(series, val)
-		})
+		monkit.StatSourceFromStruct(monkit.NewSeriesKey("swap"), &swap).Stats(cb)
 	})
 }
 
-func init() {
-	registrations["memory"] = Memory()
-}
+func init() { registrations = append(registrations, Memory()) }

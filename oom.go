@@ -15,8 +15,9 @@ var (
 )
 
 func OOM() monkit.StatSource {
-	kills := monkit.StatSourceFunc(
-		func(cb func(series monkit.Series, val float64)) {
+	// TODO: add oom scores
+	return monkit.StatSourceFunc(
+		func(cb func(key monkit.SeriesKey, field string, val float64)) {
 			fh, err := os.Open(*oomLog)
 			if err != nil {
 				logger.Debuge(err)
@@ -36,15 +37,8 @@ func OOM() monkit.StatSource {
 				return
 			}
 
-			cb(monkit.NewSeries("oom", "total"), float64(count))
+			cb(monkit.NewSeriesKey("oom"), "count", float64(count))
 		})
-
-	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
-		kills(cb)
-		// TODO: add oom scores
-	})
 }
 
-func init() {
-	registrations["oom"] = OOM()
-}
+func init() { registrations = append(registrations, OOM()) }

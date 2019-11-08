@@ -10,7 +10,7 @@ import (
 )
 
 func Disk() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
+	return monkit.StatSourceFunc(func(cb func(key monkit.SeriesKey, field string, val float64)) {
 		var fslist gosigar.FileSystemList
 		err := fslist.Get()
 		if err != nil {
@@ -27,15 +27,12 @@ func Disk() monkit.StatSource {
 				logger.Debuge(err)
 				continue
 			}
-			monkit.StatSourceFromStruct(&fsu).Stats(func(series monkit.Series, val float64) {
-				series.Measurement = "disk"
-				series.Tags = series.Tags.Set("device", fs.DevName)
-				cb(series, val)
-			})
+			monkit.StatSourceFromStruct(monkit.NewSeriesKey("disk"), &fsu).Stats(
+				func(key monkit.SeriesKey, field string, val float64) {
+					cb(key.WithTag("device", fs.DevName), field, val)
+				})
 		}
 	})
 }
 
-func init() {
-	registrations["disk"] = Disk()
-}
+func init() { registrations = append(registrations, Disk()) }

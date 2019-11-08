@@ -9,9 +9,9 @@ import (
 	"github.com/spacemonkeygo/monkit/v3"
 )
 
-func statSourceFromDir(dir string) monkit.StatSource {
+func statSourceFromDir(measurement, dir string) monkit.StatSource {
 	return monkit.StatSourceFunc(
-		func(cb func(series monkit.Series, val float64)) {
+		func(cb func(key monkit.SeriesKey, field string, val float64)) {
 			entries, err := ioutil.ReadDir(dir)
 			if err != nil {
 				logger.Debuge(err)
@@ -28,7 +28,7 @@ func statSourceFromDir(dir string) monkit.StatSource {
 					logger.Debuge(err)
 					continue
 				}
-				cb(monkit.NewSeries("directory", entry.Name()), val)
+				cb(monkit.NewSeriesKey(measurement), entry.Name(), val)
 			}
 		})
 }

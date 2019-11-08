@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	registrations = map[string]monkit.StatSource{}
+	registrations = []monkit.StatSource{}
 	logger        = spacelog.GetLogger()
 )
 
@@ -15,7 +15,7 @@ func Register(registry *monkit.Registry) {
 		registry = monkit.Default
 	}
 	pkg := registry.Package()
-	for name, source := range registrations {
-		pkg.Chain(name, source)
+	for _, source := range registrations {
+		pkg.Chain(source)
 	}
 }

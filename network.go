@@ -39,16 +39,13 @@ func countConns(path string) (amount int, err error) {
 }
 
 func Conns() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
-		series := monkit.NewSeries("conns", "connections")
-
+	return monkit.StatSourceFunc(func(cb func(key monkit.SeriesKey, field string, val float64)) {
 		v4conns, err := countConns("/proc/net/tcp")
 		if err != nil {
 			logger.Debuge(err)
 			return
 		}
-		series.Tags = series.Tags.Set("protocol", "ipv4")
-		cb(series, float64(v4conns))
+		cb(monkit.NewSeriesKey("conns").WithTag("protocol", "ipv4"), "count", float64(v4conns))
 
 		v6conns, err := countConns("/proc/net/tcp6")
 		if err != nil {
@@ -56,17 +53,14 @@ func Conns() monkit.StatSource {
 			return
 		}
 
-		series.Tags = series.Tags.Set("protocol", "ipv6")
-		cb(series, float64(v6conns))
-
-		series.Tags = series.Tags.Set("protocol", "all")
-		cb(series, float64(v4conns+v6conns))
+		cb(monkit.NewSeriesKey("conns").WithTag("protocol", "ipv6"), "count", float64(v6conns))
+		cb(monkit.NewSeriesKey("conns").WithTag("protocol", "all"), "count", float64(v4conns+v6conns))
 	})
 }
 
 func NetStats() monkit.StatSource {
 	return IncludeDerivative(
-		monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
+		monkit.StatSourceFunc(func(cb func(key monkit.SeriesKey, field string, val float64)) {
 			interfaces, err := ioutil.ReadDir("/sys/class/net")
 			if err != nil {
 				logger.Debuge(err)
@@ -74,22 +68,18 @@ func NetStats() monkit.StatSource {
 			}
 			for _, iface := range interfaces {
 				statsdir := filepath.Join("/sys/class/net", iface.Name(), "statistics")
-				statSourceFromDir(statsdir).Stats(func(series monkit.Series, val float64) {
-					series.Measurement = "netstats"
-					series.Tags = series.Tags.Set("interface", iface.Name())
-					cb(series, val)
+				statSourceFromDir("netstats", statsdir).Stats(func(key monkit.SeriesKey, field string, val float64) {
+					cb(key.WithTag("interface", iface.Name()), field, val)
 				})
 			}
 		}))
 }
 
 func Network() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
+	return monkit.StatSourceFunc(func(cb func(key monkit.SeriesKey, field string, val float64)) {
 		Conns().Stats(cb)
 		NetStats().Stats(cb)
 	})
 }
 
-func init() {
-	registrations["network"] = Network()
-}
+func init() { registrations = append(registrations, Network()) }

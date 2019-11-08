@@ -17,17 +17,18 @@ type captured struct {
 }
 
 type seriesVal struct {
-	series monkit.Series
-	val    float64
+	key   monkit.SeriesKey
+	field string
+	val   float64
 }
 
 func IncludeDerivative(src monkit.StatSource) monkit.StatSource {
 	var mtx sync.Mutex
 	history := make([]captured, 0, derivWindows+1)
-	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
+	return monkit.StatSourceFunc(func(cb func(key monkit.SeriesKey, field string, val float64)) {
 		current := captured{seriesVals: map[string]seriesVal{}, ts: time.Now()}
-		src.Stats(func(series monkit.Series, val float64) {
-			current.seriesVals[series.String()] = seriesVal{series, val}
+		src.Stats(func(key monkit.SeriesKey, field string, val float64) {
+			current.seriesVals[key.WithField(field)] = seriesVal{key, field, val}
 		})
 
 		mtx.Lock()
@@ -42,19 +43,14 @@ func IncludeDerivative(src monkit.StatSource) monkit.StatSource {
 		timeDiff := current.ts.Sub(history[0].ts).Seconds()
 		if timeDiff > 0 {
 			for key, sVal := range current.seriesVals {
-				tags := sVal.series.Tags
 				derivVal := (sVal.val - history[0].seriesVals[key].val) / timeDiff
 
-				sVal.series.Tags = tags.Set("deriv_kind", "deriv")
-				cb(sVal.series, derivVal)
-
-				sVal.series.Tags = tags.Set("deriv_kind", "value")
-				cb(sVal.series, sVal.val)
+				cb(sVal.key.WithTag("kind", "derivative"), sVal.field, derivVal)
+				cb(sVal.key.WithTag("kind", "value"), sVal.field, sVal.val)
 			}
 		} else {
 			for _, sVal := range current.seriesVals {
-				sVal.series.Tags = sVal.series.Tags.Set("deriv_kind", "value")
-				cb(sVal.series, sVal.val)
+				cb(sVal.key.WithTag("kind", "value"), sVal.field, sVal.val)
 			}
 		}
 	})

@@ -8,20 +8,15 @@ import (
 )
 
 func Load() monkit.StatSource {
-	return monkit.StatSourceFunc(func(cb func(series monkit.Series, val float64)) {
+	return monkit.StatSourceFunc(func(cb func(key monkit.SeriesKey, field string, val float64)) {
 		var load gosigar.LoadAverage
 		err := load.Get()
 		if err != nil {
 			logger.Debuge(err)
 			return
 		}
-		monkit.StatSourceFromStruct(&load).Stats(func(series monkit.Series, val float64) {
-			series.Measurement = "load"
-			cb(series, val)
-		})
+		monkit.StatSourceFromStruct(monkit.NewSeriesKey("load"), &load).Stats(cb)
 	})
 }
 
-func init() {
-	registrations["load"] = Load()
-}
+func init() { registrations = append(registrations, Load()) }
