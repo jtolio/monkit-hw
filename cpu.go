@@ -3,7 +3,7 @@
 package hw
 
 import (
-	gosigar "github.com/cloudfoundry/gosigar"
+	gosigar "github.com/elastic/gosigar"
 	"github.com/spacemonkeygo/monkit/v3"
 )
 
