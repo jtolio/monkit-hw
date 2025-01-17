@@ -5,7 +5,7 @@ package hw
 import (
 	"strings"
 
-	gosigar "github.com/cloudfoundry/gosigar"
+	gosigar "github.com/elastic/gosigar"
 	"github.com/spacemonkeygo/monkit/v3"
 )
 
