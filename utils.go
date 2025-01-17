@@ -2,7 +2,7 @@ package hw
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
 
@@ -12,13 +12,13 @@ import (
 func statSourceFromDir(measurement, dir string) monkit.StatSource {
 	return monkit.StatSourceFunc(
 		func(cb func(key monkit.SeriesKey, field string, val float64)) {
-			entries, err := ioutil.ReadDir(dir)
+			entries, err := os.ReadDir(dir)
 			if err != nil {
 				logger.Debuge(err)
 				return
 			}
 			for _, entry := range entries {
-				data, err := ioutil.ReadFile(filepath.Join(dir, entry.Name()))
+				data, err := os.ReadFile(filepath.Join(dir, entry.Name()))
 				if err != nil {
 					logger.Debuge(err)
 					continue

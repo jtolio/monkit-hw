@@ -5,7 +5,6 @@ package hw
 
 import (
 	"bufio"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -62,7 +61,7 @@ func Conns() monkit.StatSource {
 func NetStats() monkit.StatSource {
 	return IncludeDerivative(
 		monkit.StatSourceFunc(func(cb func(key monkit.SeriesKey, field string, val float64)) {
-			interfaces, err := ioutil.ReadDir("/sys/class/net")
+			interfaces, err := os.ReadDir("/sys/class/net")
 			if err != nil {
 				logger.Debuge(err)
 				return
